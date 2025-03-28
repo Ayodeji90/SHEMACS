@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smart Home Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --success-color: #2ecc71;
+      --background-color: linear-gradient(135deg, #ecf0f1, #d0e4f2);
+      --card-bg: linear-gradient(135deg, #ffffff, #f9f9f9);
+      --dark-bg: linear-gradient(135deg, #1a252f, #2c3e50);
+      --dark-card-bg: linear-gradient(135deg, #2f4050, #34495e);
+      --text-color: #2c3e50;
+      --dark-text-color: #ecf0f1;
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      --transition-speed: 0.5s;
+      --border-radius: 10px;
+    }
+
+    [data-theme="dark"] {
+      --primary-color: #ecf0f1;
+      --secondary-color: #5dade2;
+      --accent-color: #e06c75;
+      --success-color: #50c878;
+      --background-color: var(--dark-bg);
+      --card-bg: var(--dark-card-bg);
+      --text-color: var(--dark-text-color);
+      --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="high-contrast"] {
+      --background-color: #000000;
+      --card-bg: #1a1a1a;
+      --text-color: #ffffff;
+      --primary-color: #ffffff;
+      --secondary-color: #00ffff;
+      --accent-color: #ff0000;
+      --success-color: #00ff00;
+      --shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.4;
+      padding: 10px;
+      min-height: 100vh;
+      transition: all var(--transition-speed) ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(52, 152, 219, 0.05) 0%, transparent 70%);
+      animation: backgroundPulse 15s infinite ease-in-out;
+      z-index: -1;
+    }
+
+    @keyframes backgroundPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      animation: slideDown 1s ease-out;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-placeholder {
+      width: 40px;
+      height: 40px;
+      background: var(--secondary-color);
+      border-radius: 50%;
+      margin-right: 10px;
+      animation: logoSpin 4s infinite linear;
+    }
+
+    @keyframes logoSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    header h1 {
+      font-family: 'Pacifico', cursive;
+      color: var(--primary-color);
+      font-size: 1.8em;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 15px;
+      right: 100px;
+      padding: 8px 15px;
+      background: var(--secondary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-speed) ease;
+      font-size: 0.9em;
+    }
+
+    .voice-toggle {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 8px 15px;
+      background: var(--secondary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-speed) ease;
+      font-size: 0.9em;
+    }
+
+    .voice-toggle.listening {
+      background-color: var(--success-color);
+      animation: pulse 1s infinite;
+    }
+
+    .theme-toggle:hover, .voice-toggle:hover {
+      background-color: var(--primary-color);
+      transform: scale(1.05) rotate(5deg);
+    }
+
+    .theme-toggle i, .voice-toggle i {
+      transition: transform var(--transition-speed) ease;
+    }
+
+    .theme-toggle:hover i, .voice-toggle:hover i {
+      transform: rotate(360deg);
+    }
+
+    .environment {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      animation: slideUp 0.5s ease-out;
+    }
+
+    .environment p {
+      font-size: 1em;
+      color: var(--primary-color);
+    }
+
+    .devices {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      padding: 15px;
+      animation: fadeIn 1s ease-in;
+    }
+
+    .device {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 15px;
+      transition: all var(--transition-speed) ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .device::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(52, 152, 219, 0.05) 0%, transparent 70%);
+      animation: pulse 8s infinite;
+      z-index: 0;
+    }
+
+    .device > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .device:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .device h3 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-size: 1.3em;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .device i {
+      font-size: 1.1em;
+    }
+
+    .device p {
+      margin: 8px 0;
+      font-size: 1em;
+      color: #34495e;
+    }
+
+    .device .toggle-buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .device button {
+      padding: 10px 15px;
+      font-size: 0.9em;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all var(--transition-speed) ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .device button::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transition: width 0.4s, height 0.4s;
+    }
+
+    .device button:active::after {
+      width: 150px;
+      height: 150px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      animation: ripple 0.4s ease-out;
+    }
+
+    @keyframes ripple {
+      0% { opacity: 1; }
+      100% { opacity: 0; width: 200px; height: 200px; }
+    }
+
+    .device .on {
+      background-color: var(--success-color);
+      color: white;
+    }
+
+    .device .off {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .device .active {
+      transform: scale(1.15);
+    }
+
+    .device button:hover {
+      transform: scale(1.05);
+    }
+
+    .toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: var(--border-radius);
+      padding: 12px;
+      position: fixed;
+      z-index: 1001;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transition: all var(--transition-speed) ease;
+      font-size: 0.9em;
+    }
+
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .loader {
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top: 6px solid var(--secondary-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      display: none;
+    }
+
+    #powerChart {
+      max-width: 500px;
+      margin: 15px auto;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0); }
+      50% { transform: scale(1); }
+      100% { transform: scale(0); }
+    }
+
+    @media (max-width: 600px) {
+      .devices {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 1.5em;
+      }
+
+      .device {
+        padding: 10px;
+      }
+
+      #powerChart {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-placeholder"></div>
+    <h1>Smart Home Dashboard</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <i class="fas fa-adjust"></i> Theme
+    </button>
+    <button class="voice-toggle" id="voiceToggle">
+      <i class="fas fa-microphone"></i> Voice
+    </button>
+  </header>
+  <div class="environment">
+    <p>Temperature: <span id="temp">0</span> °C | Light Level: <span id="light">0</span></p>
+  </div>
+  <canvas id="powerChart"></canvas>
+  <h2>Devices</h2>
+  <div class="devices" id="devices">
+    <div class="device">
+      <h3><i class="fas fa-lightbulb"></i> Bulb_01</h3>
+      <p>Power: <span id="power-Bulb_01">0</span> W</p>
+      <div class="toggle-buttons">
+        <button class="off" onclick="toggle('Bulb_01', 'ON')">ON</button>
+        <button class="on" onclick="toggle('Bulb_01', 'OFF')">OFF</button>
+      </div>
+    </div>
+    <div class="device">
+      <h3><i class="fas fa-lightbulb"></i> Bulb_02</h3>
+      <p>Power: <span id="power-Bulb_02">0</span> W</p>
+      <div class="toggle-buttons">
+        <button class="off" onclick="toggle('Bulb_02', 'ON')">ON</button>
+        <button class="on" onclick="toggle('Bulb_02', 'OFF')">OFF</button>
+      </div>
+    </div>
+    <div class="device">
+      <h3><i class="fas fa-plug"></i> Socket</h3>
+      <p>Power: <span id="power-Socket">0</span> W</p>
+      <div class="toggle-buttons">
+        <button class="off" onclick="toggle('Socket', 'ON')">ON</button>
+        <button class="on" onclick="toggle('Socket', 'OFF')">OFF</button>
+      </div>
+    </div>
+    <div class="device">
+      <h3><i class="fas fa-fan"></i> Fan</h3>
+      <p>Power: <span id="power-Fan">0</span> W</p>
+      <div class="toggle-buttons">
+        <button class="off" onclick="toggle('Fan', 'ON')">ON</button>
+        <button class="on" onclick="toggle('Fan', 'OFF')">OFF</button>
+      </div>
+    </div>
+  </div>
+  <div class="loader" id="loader"></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const devices = ['Bulb_01', 'Bulb_02', 'Socket', 'Fan'];
+    const loader = document.getElementById('loader');
+    const toast = document.getElementById('toast');
+    const voiceToggle = document.querySelector('.voice-toggle');
+    let powerData = {
+      labels: [],
+      datasets: [{
+        label: 'Power Consumption (W)',
+        data: [],
+        borderColor: '#3498db',
+        fill: false
+      }]
+    };
+    let chart;
+    let recognition;
+    let isListening = false;
+
+    // Show loader on connect
+    socket.on('connect', () => {
+      loader.style.display = 'block';
+    });
+
+    socket.on('update', (data) => {
+      loader.style.display = 'none'; // Hide loader when data arrives
+      document.getElementById('temp').innerText = data.temp || 0;
+      document.getElementById('light').innerText = data.light || 0;
+      devices.forEach(deviceName => {
+        const powerSpan = document.getElementById(`power-${deviceName}`);
+        const onButton = document.querySelector(`#devices .device:nth-child(${devices.indexOf(deviceName) + 1}) .toggle-buttons button:nth-child(1)`);
+        const offButton = document.querySelector(`#devices .device:nth-child(${devices.indexOf(deviceName) + 1}) .toggle-buttons button:nth-child(2)`);
+        if (powerSpan && data[deviceName]) {
+          powerSpan.innerText = data[deviceName].power.toFixed(2);
+          const isOn = data[deviceName].relay === 'ON';
+          onButton.className = `on ${isOn ? 'active' : ''}`;
+          offButton.className = `off ${!isOn ? 'active' : ''}`;
+          onButton.disabled = isOn;
+          offButton.disabled = !isOn;
+
+          // Update chart
+          if (!chart) {
+            chart = new Chart(document.getElementById('powerChart'), {
+              type: 'line',
+              data: powerData,
+              options: {
+                scales: { y: { beginAtZero: true } },
+                animation: { duration: 0 }
+              }
+            });
+          }
+          powerData.labels.push(new Date().toLocaleTimeString());
+          powerData.datasets[0].data.push(data[deviceName].power);
+          if (powerData.labels.length > 10) {
+            powerData.labels.shift();
+            powerData.datasets[0].data.shift();
+          }
+          chart.update();
+        }
+      });
+    });
+
+    function toggle(deviceName, state) {
+      socket.emit('toggle', { deviceName, state });
+      showToast(`Toggled ${deviceName} to ${state}`);
+    }
+
+    function showToast(message) {
+      toast.innerText = message;
+      toast.className = 'toast show';
+      setTimeout(() => { toast.className = 'toast'; }, 3000);
+    }
+
+    function toggleTheme() {
+      const themes = ['light', 'dark', 'high-contrast'];
+      const currentTheme = document.body.dataset.theme || 'light';
+      const currentIndex = themes.indexOf(currentTheme);
+      const nextTheme = themes[(currentIndex + 1) % themes.length];
+      document.body.dataset.theme = nextTheme;
+      localStorage.setItem('theme', nextTheme);
+    }
+
+    document.getElementById('voiceToggle').addEventListener('click', toggleVoiceRecognition);
+
+    function toggleVoiceRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('Voice recognition not supported in this browser.');
+        console.error('SpeechRecognition API not supported');
+        return;
+      }
+
+      if (isListening) {
+        if (recognition) {
+          recognition.stop();
+        }
+        isListening = false;
+        voiceToggle.classList.remove('listening');
+        voiceToggle.innerHTML = `<i class="fas fa-microphone"></i> Voice`;
+        showToast('Voice recognition stopped.');
+        console.log('Voice recognition manually stopped');
+        return;
+      }
+
+      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false; // Single command mode
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        isListening = true;
+        voiceToggle.classList.add('listening');
+        voiceToggle.innerHTML = `<i class="fas fa-microphone"></i> Listening`;
+        showToast('Say a command (e.g., "Turn on Bulb_01"). Recognition will stop after command.');
+        console.log('Voice recognition started');
+      };
+
+      recognition.onend = () => {
+        if (isListening) {
+          isListening = false;
+          voiceToggle.classList.remove('listening');
+          voiceToggle.innerHTML = `<i class="fas fa-microphone"></i> Voice`;
+          showToast('Voice recognition stopped automatically.');
+          console.log('Voice recognition ended automatically');
+        }
+      };
+
+      recognition.onresult = (event) => {
+        const command = event.results[0][0].transcript.toLowerCase().trim();
+        console.log('Recognized command:', command);
+        processVoiceCommand(command);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        showToast('Error with voice recognition: ' + event.error);
+        if (recognition) {
+          recognition.stop();
+        }
+        isListening = false;
+        voiceToggle.classList.remove('listening');
+        voiceToggle.innerHTML = `<i class="fas fa-microphone"></i> Voice`;
+      };
+
+      try {
+        recognition.start();
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(() => console.log('Microphone permission granted'))
+          .catch(err => console.warn('Microphone permission denied:', err));
+      } catch (e) {
+        console.error('Failed to start recognition:', e);
+        showToast('Failed to start voice recognition. Check microphone permissions.');
+        isListening = false;
+        voiceToggle.classList.remove('listening');
+        voiceToggle.innerHTML = `<i class="fas fa-microphone"></i> Voice`;
+      }
+    }
+
+    function processVoiceCommand(command) {
+      const commandMap = {
+        'turn on': 'ON',
+        'turn off': 'OFF',
+        'switch on': 'ON',
+        'switch off': 'OFF'
+      };
+      for (let deviceName of devices) {
+        const patterns = [
+          `turn ${commandMap['turn on'] || 'on'} ${deviceName.toLowerCase()}`,
+          `turn ${commandMap['turn off'] || 'off'} ${deviceName.toLowerCase()}`,
+          `switch ${commandMap['switch on'] || 'on'} ${deviceName.toLowerCase()}`,
+          `switch ${commandMap['switch off'] || 'off'} ${deviceName.toLowerCase()}`
+        ];
+        for (let pattern of patterns) {
+          if (command.includes(pattern)) {
+            const state = commandMap[pattern.split(' ')[1]] || (pattern.includes('on') ? 'ON' : 'OFF');
+            toggle(deviceName, state);
+            showToast(`Voice command executed: ${deviceName} to ${state}`);
+            return;
+          }
+        }
+      }
+      showToast('Command not recognized. Try "Turn on Bulb_01" or "Switch off Fan".');
+    }
+
+    // Load saved theme
+    document.body.dataset.theme = localStorage.getItem('theme') || 'light';
+
+    // Request microphone permission on page load (optional, improves UX)
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => console.log('Microphone permission granted'))
+        .catch(err => console.warn('Microphone permission denied:', err));
+    }
+  </script>
+</body>
+</html>
