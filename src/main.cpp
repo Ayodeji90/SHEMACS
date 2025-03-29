@@ -5,26 +5,27 @@
 #include <LiquidCrystal.h>   // 16x2 LCD
 #include <Wire.h>            // I2C
 #include <Adafruit_Sensor.h> // Sensor library
+#include <DHT.h>           // DHT library
 
 
                          // PIN DEFINITIONS 
 // ACS712 Current Sensors (4 channels)
-#define CURRENT_SENSOR01_PIN 33  // ADC pin for ACS712 1
-#define CURRENT_SENSOR02_PIN 34  // ADC pin for ACS712 2
-#define CURRENT_SENSOR03_PIN 35  // ADC pin for ACS712 3 
-#define CURRENT_SENSOR04_PIN 36  // ADC pin for ACS712 4
+const int CURRENT_SENSOR_PIN_1 = 33; // ADC pin for ACS712 1
+const int CURRENT_SENSOR_PIN_2 = 34; // ADC pin for ACS712 2
+const int CURRENT_SENSOR_PIN_3 = 35;// ADC pin for ACS712 3 
+const int CURRENT_SENSOR_PIN_4 = 36;  // ADC pin for ACS712 4
 
 // ZMPT101B Voltage Sensors (4 channels)
-#define VOLTAGE_SENSOR01_PIN 39  // ADC pin for ZMPT101B
-#define VOLTAGE_SENSOR02_PIN 25  // ADC pin for ZMPT101B
-#define VOLTAGE_SENSOR03_PIN 26  // ADC pin for ZMPT101B
-#define VOLTAGE_SENSOR04_PIN 27  // ADC pin for ZMPT101B
+const int  VOLTAGE_SENSOR_PIN_1 = 39;  // ADC pin for ZMPT101B
+const int VOLTAGE_SENSOR_PIN_2 = 25;// ADC pin for ZMPT101B
+const int VOLTAGE_SENSOR_PIN_3 = 26; // ADC pin for ZMPT101B
+const int VOLTAGE_SENSOR_PIN_4 = 27; // ADC pin for ZMPT101B
 
 // 4-Channel Relay Module
-#define RELAY_PIN_1 12         // Relay for appliance 1
-#define RELAY_PIN_2 13         // Relay for appliance 2
-#define RELAY_PIN_3 14          // Relay for appliance 3
-#define RELAY_PIN_4 15          // Relay for appliance 4
+const int RELAY_PIN_1 = 12;        // Relay for appliance 1
+const int RELAY_PIN_2 = 13;         // Relay for appliance 2
+const int RELAY_PIN_3 = 14;          // Relay for appliance 3
+const int RELAY_PIN_4 = 15;         // Relay for appliance 4
 
 // 16x2 LCD Pins (4-bit mode)
 
@@ -50,7 +51,7 @@ const char* mqtt_server = "your_mqtt_broker_ip"; // e.g., "192.168.1.100" or "br
 // Objects
 WiFiClient espClient;
 PubSubClient client(espClient);
-DHT dht(DHT11_PIN, DHTTYPE);
+DHT dht(DHT11_PIN, DHT11); // DHT11 object
 
 // Sensor data
 float temp, light, power[4];
@@ -72,7 +73,7 @@ float readVoltage(int pin) {
 void updateSensors() {
     temp = dht.readTemperature();
     light = analogRead(LDR_PIN);
-    int currentPins[] = {CURRENT_SENSOR_PIN_1, CURRENT_SENSOR_PIN_2, CURRENT_SENSOR_PIN_3, CURRENT_SENSOR_PIN_4};
+    int currentPins[] = {CURRENT_SENSOR_PIN_1, CURRENT_SENSOR_PIN_2,CURRENT_SENSOR_PIN_3, CURRENT_SENSOR_PIN_4};
     int voltagePins[] = {VOLTAGE_SENSOR_PIN_1, VOLTAGE_SENSOR_PIN_2, VOLTAGE_SENSOR_PIN_3, VOLTAGE_SENSOR_PIN_4};
     for (int i = 0; i < NUM_DEVICES; i++) {
       float current = readCurrent(currentPins[i]);
@@ -152,3 +153,7 @@ void setup() {
 
     // ADC pins (current and voltage sensors) are input by default, no pinMode needed
   }
+
+void loop(){
+  
+}
